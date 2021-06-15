@@ -39,6 +39,31 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+
+@app.route('/realStateAgency', methods=['GET'])
+def handle_hello():
+
+    response_body = {
+        "msg": "Hello, this is your GET /user response "
+    }
+
+    return jsonify(response_body), 200
+
+@app.route('/company-sign-up', methods=['POST'])
+def company_sign_up():
+    data=request.getjson()
+
+
+
+
+
+
+
+
+
+
+
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
