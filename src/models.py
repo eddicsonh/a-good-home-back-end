@@ -66,7 +66,7 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }
 
-class Real_state(db.Model):
+class RealState(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=False, nullable=False)
     description = db.Column(db.String(200), unique=False, nullable=True)
@@ -86,6 +86,9 @@ class Real_state(db.Model):
         self.rooms = rooms,
         self.bathrooms = bathrooms,
         self.parkings = parkings
+    
+    def __repr__(self):
+        return '<RealState %r>' % self.name
 
     def serialize(self):
         return{
@@ -100,3 +103,31 @@ class Real_state(db.Model):
             "parkings": self.parkings
         }
 
+class real_state_agency(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    company = db.Column(db.String(30), unique=True, nullable=False)
+    description = db.Column(db.String(900), unique=True, nullable=False)
+    location = db.Column(db.String(20), unique=True, nullable=False)
+    team_agents = db.Column(db.Integer, nullable=False)
+    listings = db.Column(db.Integer, unique=True, nullable=False)
+    is_verified = db.Column(db.Boolean, unique=False, nullable=False)
+
+
+    def __init__(self, company, description, location, team_agents, listings, is_verified):
+        self.company= company
+        self.description= description
+        self.location= location
+        self.team_agents=team_agents
+        self.listings=listings
+        self.is_verified=is_verified
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "company": self.company,
+            "description": self.description,
+            "location": self.description,
+            "team_agents": self.team_agents,
+            "listings": self.listings,
+            "is_verified": self.is_verified 
+        }

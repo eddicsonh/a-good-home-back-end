@@ -3,13 +3,14 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 import os
 from flask import Flask, request, jsonify, url_for, make_response, session
+from flask.typing import StatusCode
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from werkzeug.wrappers import response
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Real_state
+from models import db, User, RealState
 from flask_jwt_extended import create_access_token, JWTManager
 
 app = Flask(__name__)
@@ -200,7 +201,7 @@ def delete_user(user_id):
 
 @app.route('/real_state/all', methods=['GET'])
 def handle_real_state_get_all():
-    get_real_state = Real_state.query.all()
+    get_real_state = RealState.query.all()
     all_real_state_serialize = []
     for real_state in get_real_state:
         all_real_state_serialize.append(real_state.serialize())
@@ -224,7 +225,15 @@ def handle_real_state_get_all():
 def handled_real_state_create():
 
     body = request.json
-    new_real_state = Real_state(
+
+    if body is None:
+        raise APIException('Bad Request: el servidor no pudo interpretar la solicitud dada una sintaxis inválida.', status_code=400)
+
+    if body["name"] == "":
+        return jsonify({"message":"El nombre no puede ser vacio"}), 400
+    if body["location"] == "":
+        return jsonify({"message":"Debes ingresar la localizacion del inmueble"}), 400
+    new_real_state = RealState(
         body["name"],
         body["description"],
         body["location"],
@@ -238,10 +247,32 @@ def handled_real_state_create():
     db.session.commit()
 
     response_body = {
-        "status": "ok"
+        "status": "OK",
+        "result": f"Inmueble {new_real_state.name} ha sido creado con exito."
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )
+
+    
+@app.route('/realStateAgency', methods=['GET'])
+def handle_hello():
+
+    response_body = {
+        "msg": "Hello, this is your GET /user response "
     }
 
     return jsonify(response_body), 200
+
+@app.route('/company-sign-up', methods=['POST'])
+def company_sign_up():
+    data=request.getjson()
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
