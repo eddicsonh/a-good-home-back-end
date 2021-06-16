@@ -200,7 +200,7 @@ def delete_user(user_id):
 
 
 @app.route("/sign-up-agent", methods=["POST"])
-def sign_up():
+def sign_up_agent():
     data = request.json
     agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'))
     if not isinstance(agent, Agent):
@@ -208,7 +208,7 @@ def sign_up():
     return jsonify(agent.serialize()), 201
 
 @app.route("/log-in-agent", methods=["POST"])
-def log_in():
+def log_in_agent():
     print(request.data)
     print(request.json)
     data = request.json
