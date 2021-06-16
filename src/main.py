@@ -10,7 +10,7 @@ from flask_cors import CORS
 from werkzeug.wrappers import response
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, RealState
+from models import db, User, RealState, Agent
 from flask_jwt_extended import create_access_token, JWTManager
 
 app = Flask(__name__)
@@ -261,6 +261,30 @@ def handled_real_state_create():
     )
 
     
+@app.route("/sign-up-agent", methods=["POST"])
+def sign_up_agent():
+    data = request.json
+    agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'))
+    if not isinstance(agent, Agent):
+        return jsonify({"msg": "tuve problemas, lo siento"}), 500
+    return jsonify(agent.serialize()), 201
+
+@app.route("/log-in-agent", methods=["POST"])
+def log_in_agent():
+    print(request.data)
+    print(request.json)
+    data = request.json
+    agent = Agent.query.filter_by(email=data['email']).one_or_none()
+    if agent is None: 
+        return jsonify({"msg": "sin registrar"}), 404
+    if not agent.check_password(data.get('password')):
+        return jsonify({"msg": "bad credentials"}), 400
+    token = create_access_token(identity=agent.id)
+    return jsonify({
+        "agent": agent.serialize(),
+        "token": token
+    }), 200
+
 @app.route('/realStateAgency', methods=['GET'])
 def handle_hello():
 
