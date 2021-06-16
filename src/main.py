@@ -9,6 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
+from models import db, Agent
 from flask_jwt_extended import create_access_token, JWTManager
 
 app = Flask(__name__)
@@ -196,6 +197,31 @@ def delete_user(user_id):
         status_code,
         headers
     )
+
+
+@app.route("/sign-up-agent", methods=["POST"])
+def sign_up():
+    data = request.json
+    agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'))
+    if not isinstance(agent, Agent):
+        return jsonify({"msg": "tuve problemas, lo siento"}), 500
+    return jsonify(agent.serialize()), 201
+
+@app.route("/log-in-agent", methods=["POST"])
+def log_in():
+    print(request.data)
+    print(request.json)
+    data = request.json
+    agent = Agent.query.filter_by(email=data['email']).one_or_none()
+    if agent is None: 
+        return jsonify({"msg": "sin registrar"}), 404
+    if not agent.check_password(data.get('password')):
+        return jsonify({"msg": "bad credentials"}), 400
+    token = create_access_token(identity=agent.id)
+    return jsonify({
+        "agent": agent.serialize(),
+        "token": token
+    }), 200
 
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

@@ -22,7 +22,7 @@ werkzeug = "*"
 flask-jwt-extended = "*"
 
 [requires]
-python_version = "3.9.4"
+python_version = "3.8.2"
 
 [scripts]
 start="flask run -p 3000 -h 0.0.0.0"
