@@ -7,6 +7,7 @@ from flask.typing import StatusCode
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
+from sqlalchemy.orm import query
 from werkzeug.wrappers import response
 from utils import APIException, generate_sitemap
 from admin import setup_admin
@@ -200,7 +201,7 @@ def delete_user(user_id):
     )
 
 @app.route('/real_state/all', methods=['GET'])
-def handle_real_state_get_all():
+def handle_get_all_real_state():
     get_real_state = RealState.query.all()
     all_real_state_serialize = []
     for real_state in get_real_state:
@@ -222,26 +223,24 @@ def handle_real_state_get_all():
     )
 
 @app.route('/real_state', methods=['POST'])
-def handled_real_state_create():
-
-    body = request.json
-
-    if body is None:
+def handled_post_real_state():
+    data = request.json
+    if data is None:
         raise APIException('Bad Request: el servidor no pudo interpretar la solicitud dada una sintaxis inválida.', status_code=400)
 
-    if body["name"] == "":
+    if data["name"] == "":
         return jsonify({"message":"El nombre no puede ser vacio"}), 400
-    if body["location"] == "":
+    if data["location"] == "":
         return jsonify({"message":"Debes ingresar la localizacion del inmueble"}), 400
     new_real_state = RealState(
-        body["name"],
-        body["description"],
-        body["location"],
-        body["total_area"],
-        body["builded_surface"],
-        body["rooms"],
-        body["bathrooms"],
-        body["parkings"]
+        data["name"],
+        data["description"],
+        data["location"],
+        data["total_area"],
+        data["builded_surface"],
+        data["rooms"],
+        data["bathrooms"],
+        data["parkings"]
     )
     db.session.add(new_real_state)
     db.session.commit()
@@ -259,6 +258,75 @@ def handled_real_state_create():
         status_code,
         headers
     )
+
+@app.route("/real_state/<realState_id>", methods=["DELETE"])
+def handled_delete_real_state(realState_id):
+    real_state = RealState.query.get(realState_id)
+    db.session.delete(real_state)
+    db.session.commit()
+
+    response_body = {
+        "status": "OK",
+        "result": f"Inmueble {real_state.name} ha sido borrado de la lista."
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )
+
+@app.route("/real_state/change/<realState_id>", methods=["PUT"])
+def handled_update_real_state(realState_id):
+    data = request.json
+    if data is None:
+        raise APIException('Bad Request: el servidor no pudo interpretar la solicitud dada una sintaxis inválida.', status_code=400)
+
+    real_state = RealState.query.get(realState_id)
+    real_state.name = data["name"]
+    real_state.description = data["description"]
+    real_state.locatio = data["location"]
+    real_state.total_area = data["total_area"]
+    real_state.builded_surface = data["builded_surface"]
+    real_state.rooms = data["rooms"]
+    real_state.bathrooms = data["bathrooms"]
+    real_state.parkings = data["parkings"]
+    db.session.commit()
+
+    response_body = {
+        "status": "OK",
+        "result": f"Inmueble {real_state.name} ha sido actualizado de la lista."
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )
+
+@app.route('/real_state/seach/<realState_id>', methods=['GET'])
+def handled_get_real_state(realState_id):
+    real_state = RealState.query.get(realState_id)
+    response_body = {
+        "status": "OK",
+        "response": real_state.serialize()
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )  
+
 
     
 @app.route("/sign-up-agent", methods=["POST"])
