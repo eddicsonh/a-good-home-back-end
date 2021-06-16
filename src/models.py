@@ -127,8 +127,8 @@ class real_state_agency(db.Model):
     company = db.Column(db.String(30), unique=True, nullable=False)
     description = db.Column(db.String(900), unique=True, nullable=False)
     location = db.Column(db.String(20), unique=True, nullable=False)
-    team_agents = db.Column(db.SmallInteger(10), nullable=False)
-    listings = db.Column(db.SmallInteger(10), unique=True, nullable=False)
+    team_agents = db.Column(db.Integer, nullable=False)   #db.i
+    listings = db.Column(db.Integer, unique=True, nullable=False)
     is_verified = db.Column(db.Boolean(), unique=False, nullable=False)
 
 
