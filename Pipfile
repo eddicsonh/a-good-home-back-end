@@ -21,6 +21,7 @@ mysqlclient = "*"
 flask-admin = "*"
 werkzeug = "*"
 flask-jwt-extended = "*"
+cloudinary = "*"
 
 [requires]
 python_version = "3.9"
