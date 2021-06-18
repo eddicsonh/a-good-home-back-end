@@ -1,3 +1,5 @@
+from enum import unique
+from operator import truediv
 from flask_sqlalchemy import SQLAlchemy
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -64,6 +66,43 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }
 
+class RealState(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), unique=False, nullable=False)
+    description = db.Column(db.String(200), unique=False, nullable=True)
+    location = db.Column(db.String(500), unique=False, nullable=True)
+    total_area = db.Column(db.Integer, unique=False, nullable=True)
+    builded_surface = db.Column(db.Integer, unique=False, nullable=True)
+    rooms = db.Column(db.Integer, unique=False, nullable=True)
+    bathrooms = db.Column(db.Integer, unique=False, nullable=True)
+    parkings = db.Column(db.Integer, unique=False, nullable=True)
+
+    def __init__ (self, name, description, location, total_area, builded_surface, rooms, bathrooms, parkings):
+        self.name = name,
+        self.description = description,
+        self.location = location,
+        self.total_area = total_area,
+        self.builded_surface = builded_surface,
+        self.rooms = rooms,
+        self.bathrooms = bathrooms,
+        self.parkings = parkings
+    
+    def __repr__(self):
+        return '<RealState %r>' % self.name
+
+    def serialize(self):
+        return{
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "location": self.location,
+            "total_area": self.total_area,
+            "builded_surface": self.builded_surface,
+            "rooms": self.rooms,
+            "bathrooms": self.bathrooms,
+            "parkings": self.parkings
+        }
+
 
 class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -127,9 +166,9 @@ class real_state_agency(db.Model):
     company = db.Column(db.String(30), unique=True, nullable=False)
     description = db.Column(db.String(900), unique=True, nullable=False)
     location = db.Column(db.String(20), unique=True, nullable=False)
-    team_agents = db.Column(db.Integer, nullable=False)   #db.Integer no toma argumentos 
+    team_agents = db.Column(db.Integer, nullable=False)
     listings = db.Column(db.Integer, unique=True, nullable=False)
-    is_verified = db.Column(db.Boolean(), unique=False, nullable=False)
+    is_verified = db.Column(db.Boolean, unique=False, nullable=False)
 
 
     def __init__(self, company, description, location, team_agents, listings, is_verified):
