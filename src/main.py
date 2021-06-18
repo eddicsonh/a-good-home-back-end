@@ -202,6 +202,20 @@ def delete_user(user_id):
 @app.route("/sign-up-agent", methods=["POST"])
 def sign_up_agent():
     data = request.json
+
+    if data is None:
+        raise APIException("Los campos no pueden estart vacios", status_code=400)
+    if 'email' not in data:
+        raise APIException('Necesita especificar un email', status_code=400)
+    if 'password' not in data:
+        raise APIException('Necesita especificar una contraseña')
+    if 'name' not in data:
+        raise APIException('Necesita especificar su nombre')
+    if last_name not in data:
+        raise APIException('Necsita especificar su apellido')
+    if phone not in data:
+        raise APIException('Necesita colocar su número telefónico')
+    
     agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'))
     if not isinstance(agent, Agent):
         return jsonify({"msg": "tuve problemas, lo siento"}), 500
