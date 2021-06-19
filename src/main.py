@@ -332,7 +332,7 @@ def handled_get_real_state(realState_id):
 
 
     
-@app.route("/sign-up-agent", methods=["POST"])
+@app.route("/signup/agent", methods=['POST'])
 def sign_up_agent():
     data = request.json
 
@@ -341,20 +341,20 @@ def sign_up_agent():
     if 'email' not in data:
         raise APIException('Necesita especificar un email', status_code=400)
     if 'password' not in data:
-        raise APIException('Necesita especificar una contraseña')
+        raise APIException('Necesita especificar una contraseña', status_code=400)
     if 'name' not in data:
-        raise APIException('Necesita especificar su nombre')
-    if last_name not in data:
-        raise APIException('Necsita especificar su apellido')
-    if phone not in data:
-        raise APIException('Necesita colocar su número telefónico')
+        raise APIException('Necesita especificar su nombre', status_code=400)
+    if 'last_name' not in data:
+        raise APIException('Necsita especificar su apellido', status_code=400)
+    if 'phone' not in data:
+        raise APIException('Necesita colocar su número telefónico', status_code=400)
     
     agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'))
     if not isinstance(agent, Agent):
         return jsonify({"msg": "tuve problemas, lo siento"}), 500
     return jsonify(agent.serialize()), 201
 
-@app.route("/log-in-agent", methods=["POST"])
+@app.route("/log-in/agent", methods=['POST'])
 def log_in_agent():
     print(request.data)
     print(request.json)
@@ -369,6 +369,90 @@ def log_in_agent():
         "agent": agent.serialize(),
         "token": token
     }), 200
+
+@app.route('/agent/profile', methods=['POST', 'GET'])
+def create_agent():
+    data = request.json
+    agent = Agent.create(description=data.get('description'))
+    return jsonify(agent.serialize())
+
+    new_agent =Agent(
+        data["email"],
+        data["name"],
+        data["last_name"],
+        data["phone"])
+    db.session.add(new_agent)
+    db.session.commit()
+    response_body ={
+          "status": "Perfil creado exitosamente"
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+@app.route('/agent/profile/<agent_id>', methods=['PUT'])
+def update_agent(agent_id):
+    agent = Agent.query.get(agent_id)
+    data= request.json
+    agent.email = data["email"]
+    agent.name = data["name"]
+    agent.last_name = data["last_name"]
+    agent.phone = data["phone"]
+    agent.password = data["password"]
+    agent.description = data["description"]
+    db.session.commit()
+    
+    response_body = {
+        "status": " actualizado"
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    ) 
+
+@app.route('/agent/all', methods=['GET'])
+def get_agents():
+    all_agents = Agent.query.all()
+    all_agents_serialize = []
+    for agent in all_agents:
+        all_agents_serialize.append(agent.serialize())
+    response_body = {
+        "status": "OK",
+        "response": all_agents_serialize
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )
+
+@app.route('/agent/<agent_id>', methods=['DELETE'])
+def delete_agent(agent_id):
+    agent = Agent.query.get(agent_id)
+    db.session.delete(agent)
+    db.session.commit()
+    response_body = {
+        "status": "Agente borrado exitosamente"
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )
 
 @app.route('/realStateAgency', methods=['GET'])
 def handle_hello():
