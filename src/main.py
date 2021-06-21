@@ -349,7 +349,7 @@ def sign_up_agent():
     if 'phone' not in data:
         raise APIException('Necesita colocar su número telefónico', status_code=400)
     
-    agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'))
+    agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'), description=data.get('description'))
     if not isinstance(agent, Agent):
         return jsonify({"msg": "tuve problemas, lo siento"}), 500
     return jsonify(agent.serialize()), 201
@@ -370,17 +370,16 @@ def log_in_agent():
         "token": token
     }), 200
 
-@app.route('/agent/profile', methods=['POST', 'GET'])
+@app.route('/agent/profile', methods=['POST'])
 def create_agent():
     data = request.json
-    agent = Agent.create(description=data.get('description'))
-    return jsonify(agent.serialize())
 
     new_agent =Agent(
         data["email"],
         data["name"],
         data["last_name"],
-        data["phone"])
+        data["phone"],
+        data["description"])
     db.session.add(new_agent)
     db.session.commit()
     response_body ={

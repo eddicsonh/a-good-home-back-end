@@ -118,7 +118,6 @@ class Agent(db.Model):
     def __init__(self, **kwargs):
         print(kwargs)
         self.email = kwargs.get('email')
-        self.description = kwargs.get('description')
         self.name = kwargs.get('name')
         self.last_name = kwargs.get('last_name')
         self.phone = kwargs.get('phone')
