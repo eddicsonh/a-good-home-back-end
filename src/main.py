@@ -105,7 +105,8 @@ def create_user():
         request_body["name"],
         request_body["last_name"],
         request_body["phone"],
-        request_body["id_document"])
+        request_body["id_document"],
+        request_body["password"])
     db.session.add(new_user)
     db.session.commit()
     response_body ={
@@ -125,11 +126,9 @@ def create_user():
 def update_user(user_id):
     user = User.query.get(user_id)
     request_body = request.json
-    user.email = request_body["email"]
     user.name = request_body["name"]
     user.last_name = request_body["last_name"]
     user.phone = request_body["phone"]
-    user.id_document = request_body["id_document"]
     user.password = request_body["password"]
     db.session.commit()
     
