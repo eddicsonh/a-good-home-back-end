@@ -355,7 +355,7 @@ def handled_src_location_real_state(location):
     
 @app.route("/signup/agent", methods=['POST'])
 def sign_up_agent():
-    data = request.json
+    data = request.get_json()
 
     if data is None:
         raise APIException("Los campos no pueden estart vacios", status_code=400)
@@ -569,7 +569,8 @@ def searchparams():
 
     #Busqueda de agentes por nombre y Inmuebles por location
     agentes= Agent.query.filter_by(name = request.args.get('search'))
-    inmuebles= RealState.query.filter_by(location=request.args.get('search'))
+    search = "%{}%".format(request.args.get('search'))
+    inmuebles= RealState.query.filter(RealState.location.like(search)).all()
     respuesta_agentes=[]
     for agente in agentes:
         respuesta_agentes.append(agente.serialize())
@@ -580,8 +581,6 @@ def searchparams():
     if len(response[0])==0 and len(response[1])==0:
         return make_response(jsonify("No encontrado"), 404, headers)
     return make_response(jsonify(response), 200, headers)
-    )
-
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
