@@ -11,7 +11,7 @@ from sqlalchemy.orm import query
 from werkzeug.wrappers import response
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, RealState, Agent
+from models import db, User, RealState, Agent, Transaction
 from flask_jwt_extended import create_access_token, JWTManager
 
 app = Flask(__name__)
@@ -105,7 +105,8 @@ def create_user():
         request_body["name"],
         request_body["last_name"],
         request_body["phone"],
-        request_body["id_document"])
+        request_body["id_document"],
+        request_body["password"])
     db.session.add(new_user)
     db.session.commit()
     response_body ={
@@ -125,11 +126,9 @@ def create_user():
 def update_user(user_id):
     user = User.query.get(user_id)
     request_body = request.json
-    user.email = request_body["email"]
     user.name = request_body["name"]
     user.last_name = request_body["last_name"]
     user.phone = request_body["phone"]
-    user.id_document = request_body["id_document"]
     user.password = request_body["password"]
     db.session.commit()
     
@@ -209,10 +208,11 @@ def handle_get_all_real_state():
     all_real_state_serialize = []
     for real_state in get_real_state:
         all_real_state_serialize.append(real_state.serialize())
+
     response_body = {
         "status": "OK",
         "count_real_states": len(all_real_state_serialize),
-        "response": all_real_state_serialize
+        "response": all_real_state_serialize,
     }
     status_code = 200
     headers = {
@@ -330,7 +330,28 @@ def handled_get_real_state(realState_id):
         headers
     )  
 
-
+@app.route('/real_state/seach_rs/<location>', methods=['GET'])
+def handled_src_location_real_state(location):
+    search = "%{}%".format(location)
+    print(search)
+    rs_by_name = RealState.query.filter(RealState.location.like(search)).all()
+    all_rs_serialize = []
+    for real_state in rs_by_name:
+        all_rs_serialize.append(real_state.serialize())
+    response_body = {
+        "status": "OK",
+        "count": len(all_rs_serialize),
+        "response": all_rs_serialize
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )  
     
 @app.route("/signup/agent", methods=['POST', 'GET'])
 def sign_up_agent():
@@ -483,6 +504,51 @@ def handle_hello():
 @app.route('/company-sign-up', methods=['POST'])
 def company_sign_up():
     data=request.getjson()
+
+
+@app.route('/transaction', methods=["GET","POST"])
+def handled_transaction():
+
+    headers={
+        "Content-type":"application/json"
+    }
+
+    if request.method == 'GET':
+        all_transaction = Transaction.query.all()
+        all_transaction_serialize = []
+        for transaction in all_transaction:
+            all_transaction_serialize.append(transaction.serialize())
+        response_body = {
+            "status" : "OK",
+            "results": all_transaction_serialize
+        }
+        status_code = 200
+
+    elif request.method == 'POST':
+        data = request.json
+
+        new_transaction = Transaction(
+            name = data["name"]
+        )
+        db.session.add(new_transaction)
+        db.session.commit()
+        response_body = {
+            "status" : "OK",
+            "results": f"Se ha creado correctamente {new_transaction.name}"
+        }
+        status_code = 200
+    else:
+        response_body={
+            "status":"400_NO_EXISTE_EL_METODO_SELECCIONADO"
+        }
+        status_code = 404
+    
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
