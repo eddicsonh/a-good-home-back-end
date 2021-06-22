@@ -416,6 +416,7 @@ def update_agent(agent_id):
 
 @app.route('/agent/all', methods=['GET'])
 def get_agents():
+    print(request.args)
     all_agents = Agent.query.all()
     all_agents_serialize = []
     for agent in all_agents:
@@ -464,6 +465,61 @@ def handle_hello():
 @app.route('/company-sign-up', methods=['POST'])
 def company_sign_up():
     data=request.getjson()
+
+@app.route('/realStateAgent/<realState_id>/agent/<agent_id>', methods=['POST'])
+def real_state_agent(realState_id, agent_id):
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+    data = request.json
+    new_realStateAgent= RealStateAgent(id_agent, id_RealState)
+    db.session.add(new_realStateAgent)
+    try:
+        db.session.commit()
+
+        response_body = {
+        "status": "OK"
+        }
+        status_code = 200
+    except Exception as error:
+        db.session.rollback()
+        status_code = 400
+
+        response_body = {
+        "status": "HTTP: BAD REQUEST"
+        }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )  
+   
+@app.route('/searchall', methods=['GET']) 
+def searchparams():
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+    # Validar que el parametro search no venga vacio
+    args = request.args.get('search')
+    if args is None:
+        return make_response(jsonify("Bad request"), 409, headers)
+    # Fin de la validación
+
+    #Busqueda de agentes por nombre y Inmuebles por location
+    agentes= Agent.query.filter_by(name = request.args.get('search'))
+    inmuebles= RealState.query.filter_by(location=request.args.get('search'))
+    respuesta_agentes=[]
+    for agente in agentes:
+        respuesta_agentes.append(agente.serialize())
+    respuesta_inmuebles=[]
+    for inmueble in inmuebles:
+        respuesta_inmuebles.append(inmueble.serialize())
+    response = [respuesta_agentes,respuesta_inmuebles]
+    if len(response[0])==0 and len(response[1])==0:
+        return make_response(jsonify("No encontrado"), 404, headers)
+    return make_response(jsonify(response), 200, headers)
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

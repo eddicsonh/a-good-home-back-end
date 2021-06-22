@@ -161,33 +161,18 @@ class Agent(db.Model):
             # do not serialize the password, its a security breach
         }
 
-
-        
-class real_state_agency(db.Model):
+class RealStateAgent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    company = db.Column(db.String(30), unique=True, nullable=False)
-    description = db.Column(db.String(900), unique=True, nullable=False)
-    location = db.Column(db.String(20), unique=True, nullable=False)
-    team_agents = db.Column(db.Integer, nullable=False)
-    listings = db.Column(db.Integer, unique=True, nullable=False)
-    is_verified = db.Column(db.Boolean, unique=False, nullable=False)
+    id_agent = db.Column(db.Integer, db.ForeignKey('agent.id'))
+    id_RealState = db.Column(db.Integer, db.ForeignKey('real_state.id'))
 
-
-    def __init__(self, company, description, location, team_agents, listings, is_verified):
-        self.company= company
-        self.description= description
-        self.location= location
-        self.team_agents=team_agents
-        self.listings=listings
-        self.is_verified=is_verified
+    def __init__(self, id_agent, id_RealState):
+        self.id_agent= id_agent
+        self.id_RealState= id_RealState
 
     def serialize(self):
         return {
 
-            "company": self.company,
-            "description": self.description,
-            "location": self.description,
-            "team_agents": self.team_agents,
-            "listings": self.listings,
-            "is_verified": self.is_verified 
+            "id_agent": self.id_agent,
+            "id_RealState": self.id_RealState
         }
