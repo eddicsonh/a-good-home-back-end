@@ -111,6 +111,7 @@ class RealState(db.Model):
 
 class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(200), unique=False, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(80), unique=False, nullable=False)
     last_name = db.Column(db.String(80), unique=False, nullable=False)
@@ -127,6 +128,7 @@ class Agent(db.Model):
         self.phone = kwargs.get('phone')
         self.salt = os.urandom(16).hex()
         self.set_password(kwargs.get('password'))
+        self.description = kwargs.get('description')
 
     @classmethod
     def create(cls, **kwargs):
