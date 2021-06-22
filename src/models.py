@@ -2,6 +2,7 @@ from enum import unique
 from operator import truediv
 from flask_sqlalchemy import SQLAlchemy
 import os
+from sqlalchemy.orm import backref, lazyload
 from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
@@ -67,6 +68,7 @@ class User(db.Model):
         }
 
 class RealState(db.Model):
+    __tablename__ = 'realstate'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=False, nullable=False)
     description = db.Column(db.String(200), unique=False, nullable=True)
@@ -76,6 +78,8 @@ class RealState(db.Model):
     rooms = db.Column(db.Integer, unique=False, nullable=True)
     bathrooms = db.Column(db.Integer, unique=False, nullable=True)
     parkings = db.Column(db.Integer, unique=False, nullable=True)
+    transaction = db.relationship('Transaction', lazy=True)
+    
 
     def __init__ (self, name, description, location, total_area, builded_surface, rooms, bathrooms, parkings):
         self.name = name,
@@ -85,7 +89,7 @@ class RealState(db.Model):
         self.builded_surface = builded_surface,
         self.rooms = rooms,
         self.bathrooms = bathrooms,
-        self.parkings = parkings
+        self.parkings = parkings,
     
     def __repr__(self):
         return '<RealState %r>' % self.name
@@ -100,7 +104,8 @@ class RealState(db.Model):
             "builded_surface": self.builded_surface,
             "rooms": self.rooms,
             "bathrooms": self.bathrooms,
-            "parkings": self.parkings
+            "parkings": self.parkings,
+            "transaction": list(map(lambda x: x.serialize(), self.transaction))
         }
 
 
@@ -175,4 +180,27 @@ class RealStateAgent(db.Model):
 
             "id_agent": self.id_agent,
             "id_RealState": self.id_RealState
+            "company": self.company,
+            "description": self.description,
+            "location": self.description,
+            "team_agents": self.team_agents,
+            "listings": self.listings,
+            "is_verified": self.is_verified 
+        }
+
+
+class Transaction(db.Model):
+    __tablename__ = 'transaction'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=False)
+    id_realState = db.Column(db.Integer, db.ForeignKey('realstate.id'), nullable=True, unique=False)
+    # realstate = db.relationship('RealState', backref='transaction', lazy=True)
+
+    def __init__(self, name):
+        self.name = name
+
+    def serialize(self):
+        return{
+            "id":self.id,
+            "name": self.name
         }
