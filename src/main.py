@@ -332,7 +332,7 @@ def handled_get_real_state(realState_id):
 
 
     
-@app.route("/signup/agent", methods=['POST'])
+@app.route("/signup/agent", methods=['POST', 'GET'])
 def sign_up_agent():
     data = request.json
 
@@ -414,6 +414,24 @@ def update_agent(agent_id):
         status_code,
         headers
     ) 
+
+@app.route('/agent/<agent_id>', methods=['GET'])
+def get_agent_id(agent_id):
+    agent = Agent.query.get(agent_id)
+    response_body = {
+        "status": "OK",
+        "response": agent.serialize()
+    
+    }
+    status_code = 200
+    headers = {
+        "Content-Type": "application/json"
+    }
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )  
 
 @app.route('/agent/all', methods=['GET'])
 def get_agents():

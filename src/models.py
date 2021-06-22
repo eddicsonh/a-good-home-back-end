@@ -106,11 +106,11 @@ class RealState(db.Model):
 
 class Agent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(200), unique=False, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(80), unique=False, nullable=False)
     last_name = db.Column(db.String(80), unique=False, nullable=False)
     phone = db.Column(db.String(16), unique=True, nullable=False)
+    description = db.Column(db.String(200), unique=False, nullable=False)
     salt = db.Column(db.String(40), nullable=False)
     hashed_password = db.Column(db.String(240), nullable=False)
     is_active = db.Column(db.Boolean(), default=True, nullable=False)
@@ -121,9 +121,10 @@ class Agent(db.Model):
         self.name = kwargs.get('name')
         self.last_name = kwargs.get('last_name')
         self.phone = kwargs.get('phone')
+        self.description = kwargs.get('description')
         self.salt = os.urandom(16).hex()
         self.set_password(kwargs.get('password'))
-        self.description = kwargs.get('description')
+        
 
     @classmethod
     def create(cls, **kwargs):
@@ -160,9 +161,7 @@ class Agent(db.Model):
             "email": self.email,
             # do not serialize the password, its a security breach
         }
-
-
-        
+     
 class real_state_agency(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company = db.Column(db.String(30), unique=True, nullable=False)
