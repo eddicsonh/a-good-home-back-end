@@ -233,17 +233,22 @@ def handled_post_real_state():
 
     if data["name"] == "":
         return jsonify({"message":"El nombre no puede ser vacio"}), 400
-    if data["location"] == "":
-        return jsonify({"message":"Debes ingresar la localizacion del inmueble"}), 400
     new_real_state = RealState(
         data["name"],
         data["description"],
-        data["location"],
+        data["city"],
+        data["address"],
         data["total_area"],
         data["builded_surface"],
         data["rooms"],
         data["bathrooms"],
-        data["parkings"]
+        data["parkings"],
+        data["price"],
+        data["contact_phone"],
+        data["contact_rrss"],
+        data["type_transaction"],
+        data["additional_information"]
+
     )
     db.session.add(new_real_state)
     db.session.commit()
@@ -313,7 +318,7 @@ def handled_update_real_state(realState_id):
         headers
     )
 
-@app.route('/real_state/seach/<realState_id>', methods=['GET'])
+@app.route('/real_state/search/<realState_id>', methods=['GET'])
 def handled_get_real_state(realState_id):
     real_state = RealState.query.get(realState_id)
     response_body = {
@@ -330,14 +335,20 @@ def handled_get_real_state(realState_id):
         headers
     )  
 
-@app.route('/real_state/seach_rs/<location>', methods=['GET'])
+@app.route('/real_state/search_rs/<location>', methods=['GET'])
 def handled_src_location_real_state(location):
     search = "%{}%".format(location)
-    print(search)
-    rs_by_name = RealState.query.filter(RealState.location.like(search)).all()
     all_rs_serialize = []
-    for real_state in rs_by_name:
-        all_rs_serialize.append(real_state.serialize())
+    rs_by_city = RealState.query.filter(RealState.city.like(search)).all()
+    print(rs_by_city)
+    if rs_by_city is None:
+        for real_state in rs_by_city:
+            all_rs_serialize.append(real_state.serialize())
+    elif rs_by_city is None:
+        rs_by_address = RealState.query.filter(RealState.address.like(search)).all()
+        for real_state in rs_by_city:
+            all_rs_serialize.append(real_state.serialize())
+
     response_body = {
         "status": "OK",
         "count": len(all_rs_serialize),

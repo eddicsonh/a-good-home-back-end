@@ -72,24 +72,36 @@ class RealState(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=False, nullable=False)
     description = db.Column(db.String(200), unique=False, nullable=True)
-    location = db.Column(db.String(500), unique=False, nullable=True)
+    city = db.Column(db.String(100), unique=False, nullable=True)
+    address = db.Column(db.String(500), unique=False, nullable=True)
     total_area = db.Column(db.Integer, unique=False, nullable=True)
     builded_surface = db.Column(db.Integer, unique=False, nullable=True)
     rooms = db.Column(db.Integer, unique=False, nullable=True)
     bathrooms = db.Column(db.Integer, unique=False, nullable=True)
     parkings = db.Column(db.Integer, unique=False, nullable=True)
+    price = db.Column(db.Integer, unique=False, nullable=True)
+    contact_phone = db.Column(db.Integer, unique=True, nullable=True)
+    contact_rrss = db.Column(db.String(50), unique=False, nullable=True)
+    type_transaction = db.Column(db.String(50), unique=False, nullable=True)
+    additional_information = db.Column(db.String(200), unique=False, nullable=True)
     transaction = db.relationship('Transaction', lazy=True)
     
 
-    def __init__ (self, name, description, location, total_area, builded_surface, rooms, bathrooms, parkings):
+    def __init__ (self, name, description, city, address, total_area, builded_surface, rooms, bathrooms, parkings, price, contact_phone, contact_rrss, type_transaction, additional_information):
         self.name = name,
         self.description = description,
-        self.location = location,
+        self.city = city,
+        self.address = address
         self.total_area = total_area,
         self.builded_surface = builded_surface,
         self.rooms = rooms,
         self.bathrooms = bathrooms,
         self.parkings = parkings,
+        self.price = price,
+        self.contact_phone = contact_phone,
+        self.contact_rrss = contact_rrss,
+        self.type_transaction = type_transaction
+        self.additional_information = additional_information
     
     def __repr__(self):
         return '<RealState %r>' % self.name
@@ -99,13 +111,18 @@ class RealState(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "location": self.location,
+            "location": self.city + ' ' + self.address,
             "total_area": self.total_area,
             "builded_surface": self.builded_surface,
             "rooms": self.rooms,
             "bathrooms": self.bathrooms,
             "parkings": self.parkings,
-            "transaction": list(map(lambda x: x.serialize(), self.transaction))
+            "price": self.price,
+            "phone": self.contact_phone,
+            "RRSS": self.contact_rrss,
+            "transaction": self.transaction,
+            "additional_information": self.additional_information
+            # "transaction": list(map(lambda x: x.serialize(), self.transaction))
         }
 
 
