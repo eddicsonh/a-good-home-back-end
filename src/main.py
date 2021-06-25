@@ -247,7 +247,8 @@ def handled_post_real_state():
         data["contact_phone"],
         data["contact_rrss"],
         data["type_transaction"],
-        data["additional_information"]
+        data["additional_information"],
+        data["image"]
 
     )
     db.session.add(new_real_state)
@@ -340,14 +341,13 @@ def handled_src_location_real_state(location):
     search = "%{}%".format(location)
     all_rs_serialize = []
     rs_by_city = RealState.query.filter(RealState.city.like(search)).all()
-    print(rs_by_city)
-    if rs_by_city is None:
-        for real_state in rs_by_city:
-            all_rs_serialize.append(real_state.serialize())
-    elif rs_by_city is None:
-        rs_by_address = RealState.query.filter(RealState.address.like(search)).all()
-        for real_state in rs_by_city:
-            all_rs_serialize.append(real_state.serialize())
+    rs_by_address = RealState.query.filter(RealState.address.like(search)).all()
+    if rs_by_city is not None:
+        for real_state_city in rs_by_city:
+            all_rs_serialize.append(real_state_city.serialize())
+    if rs_by_address is not None:
+        for real_state_address in rs_by_address:
+            all_rs_serialize.append(real_state_address.serialize())
 
     response_body = {
         "status": "OK",
@@ -366,7 +366,7 @@ def handled_src_location_real_state(location):
     
 @app.route("/signup/agent", methods=['POST'])
 def sign_up_agent():
-    data = request.json
+    data = request.get_json()
 
     if data is None:
         raise APIException("Los campos no pueden estart vacios", status_code=400)
@@ -414,13 +414,19 @@ def create_agent():
         data["description"])
     db.session.add(new_agent)
     db.session.commit()
-    response_body ={
-          "status": "Perfil creado exitosamente"
+    response_body = {
+        "status": "Perfil creado exitosamente"
     }
     status_code = 200
     headers = {
         "Content-Type": "application/json"
     }
+
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    ) 
 
 @app.route('/agent/profile/<agent_id>', methods=['PUT'])
 def update_agent(agent_id):
@@ -449,6 +455,7 @@ def update_agent(agent_id):
 
 @app.route('/agent/all', methods=['GET'])
 def get_agents():
+    print(request.args)
     all_agents = Agent.query.all()
     all_agents_serialize = []
     for agent in all_agents:
@@ -494,10 +501,34 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+
 @app.route('/company-sign-up', methods=['POST'])
 def company_sign_up():
     data=request.getjson()
 
+# @app.route('/realStateAgent/<realState_id>/agent/<agent_id>', methods=['POST'])
+# def real_state_agent(realState_id, agent_id):
+
+#     headers = {
+#         "Content-Type": "application/json"
+#     }
+#     data = request.json
+#     new_realStateAgent= RealStateAgent(id_agent, id_RealState)
+#     db.session.add(new_realStateAgent)
+#     try:
+#         db.session.commit()
+
+#         response_body = {
+#         "status": "OK"
+#         }
+#         status_code = 200
+#     except Exception as error:
+#         db.session.rollback()
+#         status_code = 400
+
+#         response_body = {
+#         "status": "HTTP: BAD REQUEST"
+#         }
 
 @app.route('/transaction', methods=["GET","POST"])
 def handled_transaction():
@@ -540,8 +571,34 @@ def handled_transaction():
         jsonify(response_body),
         status_code,
         headers
-    )
+    )  
+   
+@app.route('/searchall', methods=['GET']) 
+def searchparams():
 
+    headers = {
+        "Content-Type": "application/json"
+    }
+    # Validar que el parametro search no venga vacio
+    args = request.args.get('search')
+    if args is None:
+        return make_response(jsonify("Bad request"), 409, headers)
+    # Fin de la validación
+
+    #Busqueda de agentes por nombre y Inmuebles por location
+    agentes= Agent.query.filter_by(name = request.args.get('search'))
+    search = "%{}%".format(request.args.get('search'))
+    inmuebles= RealState.query.filter(RealState.location.like(search)).all()
+    respuesta_agentes=[]
+    for agente in agentes:
+        respuesta_agentes.append(agente.serialize())
+    respuesta_inmuebles=[]
+    for inmueble in inmuebles:
+        respuesta_inmuebles.append(inmueble.serialize())
+    response = [respuesta_agentes,respuesta_inmuebles]
+    if len(response[0])==0 and len(response[1])==0:
+        return make_response(jsonify("No encontrado"), 404, headers)
+    return make_response(jsonify(response), 200, headers)
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

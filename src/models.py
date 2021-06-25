@@ -84,10 +84,11 @@ class RealState(db.Model):
     contact_rrss = db.Column(db.String(50), unique=False, nullable=True)
     type_transaction = db.Column(db.String(50), unique=False, nullable=True)
     additional_information = db.Column(db.String(200), unique=False, nullable=True)
+    image = db.Column(db.String(500), unique=True, nullable=True)
     transaction = db.relationship('Transaction', lazy=True)
     
 
-    def __init__ (self, name, description, city, address, total_area, builded_surface, rooms, bathrooms, parkings, price, contact_phone, contact_rrss, type_transaction, additional_information):
+    def __init__ (self, name, description, city, address, total_area, builded_surface, rooms, bathrooms, parkings, price, contact_phone, contact_rrss, type_transaction, additional_information,image):
         self.name = name,
         self.description = description,
         self.city = city,
@@ -101,7 +102,8 @@ class RealState(db.Model):
         self.contact_phone = contact_phone,
         self.contact_rrss = contact_rrss,
         self.type_transaction = type_transaction
-        self.additional_information = additional_information
+        self.additional_information = additional_information,
+        self.image = image
     
     def __repr__(self):
         return '<RealState %r>' % self.name
@@ -121,12 +123,13 @@ class RealState(db.Model):
             "phone": self.contact_phone,
             "RRSS": self.contact_rrss,
             "transaction": self.transaction,
-            "additional_information": self.additional_information
+            "additional_information": self.additional_information,
+            "image": self.image
             # "transaction": list(map(lambda x: x.serialize(), self.transaction))
         }
 
-
 class Agent(db.Model):
+    __tablename__ = 'agent'
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(200), unique=False, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -179,41 +182,10 @@ class Agent(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "email": self.email,
+            "name": self.name,
+            "email": self.email
             # do not serialize the password, its a security breach
         }
-
-
-        
-class real_state_agency(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    company = db.Column(db.String(30), unique=True, nullable=False)
-    description = db.Column(db.String(900), unique=True, nullable=False)
-    location = db.Column(db.String(20), unique=True, nullable=False)
-    team_agents = db.Column(db.Integer, nullable=False)
-    listings = db.Column(db.Integer, unique=True, nullable=False)
-    is_verified = db.Column(db.Boolean, unique=False, nullable=False)
-
-
-    def __init__(self, company, description, location, team_agents, listings, is_verified):
-        self.company= company
-        self.description= description
-        self.location= location
-        self.team_agents=team_agents
-        self.listings=listings
-        self.is_verified=is_verified
-
-    def serialize(self):
-        return {
-
-            "company": self.company,
-            "description": self.description,
-            "location": self.description,
-            "team_agents": self.team_agents,
-            "listings": self.listings,
-            "is_verified": self.is_verified 
-        }
-
 
 class Transaction(db.Model):
     __tablename__ = 'transaction'

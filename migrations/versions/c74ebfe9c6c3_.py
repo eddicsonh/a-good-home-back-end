@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 093bc85e3096
+Revision ID: c74ebfe9c6c3
 Revises: 
-Create Date: 2021-06-23 23:57:50.990265
+Create Date: 2021-06-24 10:57:28.631276
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '093bc85e3096'
+revision = 'c74ebfe9c6c3'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,20 +31,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('phone')
-    )
-    op.create_table('real_state_agency',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('company', sa.String(length=30), nullable=False),
-    sa.Column('description', sa.String(length=900), nullable=False),
-    sa.Column('location', sa.String(length=20), nullable=False),
-    sa.Column('team_agents', sa.Integer(), nullable=False),
-    sa.Column('listings', sa.Integer(), nullable=False),
-    sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('company'),
-    sa.UniqueConstraint('description'),
-    sa.UniqueConstraint('listings'),
-    sa.UniqueConstraint('location')
     )
     op.create_table('realstate',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -94,6 +80,5 @@ def downgrade():
     op.drop_table('transaction')
     op.drop_table('user')
     op.drop_table('realstate')
-    op.drop_table('real_state_agency')
     op.drop_table('agent')
     # ### end Alembic commands ###
