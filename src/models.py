@@ -115,7 +115,8 @@ class Agent(db.Model):
     name = db.Column(db.String(80), unique=False, nullable=False)
     last_name = db.Column(db.String(80), unique=False, nullable=False)
     phone = db.Column(db.String(16), unique=True, nullable=False)
-    description = db.Column(db.String(200), unique=False, nullable=False)
+    description = db.Column(db.String(400), unique=False, nullable=False)
+    location = db.Column(db.String(120), unique=False, nullable=False)
     salt = db.Column(db.String(40), nullable=False)
     hashed_password = db.Column(db.String(240), nullable=False)
     is_active = db.Column(db.Boolean(), default=True, nullable=False)
@@ -164,37 +165,35 @@ class Agent(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "name": self.name,
+            "last_name" : self.last_name,
+            "phone": self.phone
             # do not serialize the password, its a security breach
         }
      
-class real_state_agency(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    company = db.Column(db.String(30), unique=True, nullable=False)
-    description = db.Column(db.String(900), unique=True, nullable=False)
-    location = db.Column(db.String(20), unique=True, nullable=False)
-    team_agents = db.Column(db.Integer, nullable=False)
-    listings = db.Column(db.Integer, unique=True, nullable=False)
-    is_verified = db.Column(db.Boolean, unique=False, nullable=False)
 
 
-    def __init__(self, company, description, location, team_agents, listings, is_verified):
-        self.company= company
-        self.description= description
-        self.location= location
-        self.team_agents=team_agents
-        self.listings=listings
-        self.is_verified=is_verified
+# class RealStateAgent(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     id_agent = db.Column(db.Integer, db.ForeignKey('agent.id'))
+#     id_RealState = db.Column(db.Integer, db.ForeignKey('real_state.id'))
 
-    def serialize(self):
-        return {
+#     def __init__(self, id_agent, id_RealState):
+#         self.id_agent= id_agent
+#         self.id_RealState= id_RealState
 
-            "company": self.company,
-            "description": self.description,
-            "location": self.description,
-            "team_agents": self.team_agents,
-            "listings": self.listings,
-            "is_verified": self.is_verified 
-        }
+#     def serialize(self):
+#         return {
+
+#             "id_agent": self.id_agent,
+#             "id_RealState": self.id_RealState,
+#             "company": self.company,
+#             "description": self.description,
+#             "location": self.description,
+#             "team_agents": self.team_agents,
+#             "listings": self.listings,
+#             "is_verified": self.is_verified 
+#         }
 
 
 class Transaction(db.Model):
