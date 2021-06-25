@@ -233,17 +233,23 @@ def handled_post_real_state():
 
     if data["name"] == "":
         return jsonify({"message":"El nombre no puede ser vacio"}), 400
-    if data["location"] == "":
-        return jsonify({"message":"Debes ingresar la localizacion del inmueble"}), 400
     new_real_state = RealState(
         data["name"],
         data["description"],
-        data["location"],
+        data["city"],
+        data["address"],
         data["total_area"],
         data["builded_surface"],
         data["rooms"],
         data["bathrooms"],
-        data["parkings"]
+        data["parkings"],
+        data["price"],
+        data["contact_phone"],
+        data["contact_rrss"],
+        data["type_transaction"],
+        data["additional_information"],
+        data["image"]
+
     )
     db.session.add(new_real_state)
     db.session.commit()
@@ -313,7 +319,7 @@ def handled_update_real_state(realState_id):
         headers
     )
 
-@app.route('/real_state/seach/<realState_id>', methods=['GET'])
+@app.route('/real_state/search/<realState_id>', methods=['GET'])
 def handled_get_real_state(realState_id):
     real_state = RealState.query.get(realState_id)
     response_body = {
@@ -330,14 +336,19 @@ def handled_get_real_state(realState_id):
         headers
     )  
 
-@app.route('/real_state/seach_rs/<location>', methods=['GET'])
+@app.route('/real_state/search_rs/<location>', methods=['GET'])
 def handled_src_location_real_state(location):
     search = "%{}%".format(location)
-    print(search)
-    rs_by_name = RealState.query.filter(RealState.location.like(search)).all()
     all_rs_serialize = []
-    for real_state in rs_by_name:
-        all_rs_serialize.append(real_state.serialize())
+    rs_by_city = RealState.query.filter(RealState.city.like(search)).all()
+    rs_by_address = RealState.query.filter(RealState.address.like(search)).all()
+    if rs_by_city is not None:
+        for real_state_city in rs_by_city:
+            all_rs_serialize.append(real_state_city.serialize())
+    if rs_by_address is not None:
+        for real_state_address in rs_by_address:
+            all_rs_serialize.append(real_state_address.serialize())
+
     response_body = {
         "status": "OK",
         "count": len(all_rs_serialize),
@@ -355,7 +366,7 @@ def handled_src_location_real_state(location):
     
 @app.route("/signup/agent", methods=['POST'])
 def sign_up_agent():
-    data = request.json
+    data = request.get_json()
 
     if data is None:
         raise APIException("Los campos no pueden estart vacios", status_code=400)
@@ -369,7 +380,7 @@ def sign_up_agent():
         raise APIException('Necsita especificar su apellido', status_code=400)
     if 'phone' not in data:
         raise APIException('Necesita colocar su número telefónico', status_code=400)
-    agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'), description=data.get('description'))
+    agent = Agent.create(email=data.get('email'), password=data.get('password'), name=data.get('name'), last_name=data.get('last_name'), phone=data.get('phone'), description=data.get('description'), city=data.get('city'))
     if not isinstance(agent, Agent):
         return jsonify({"msg": "tuve problemas, lo siento"}), 500
     return jsonify(agent.serialize()), 201
@@ -399,16 +410,23 @@ def create_agent():
         data["name"],
         data["last_name"],
         data["phone"],
-        data["description"])
+        data["description"],
+        data["city"])
     db.session.add(new_agent)
     db.session.commit()
-    response_body ={
-          "status": "Perfil creado exitosamente"
+    response_body = {
+        "status": "Perfil creado exitosamente"
     }
     status_code = 200
     headers = {
         "Content-Type": "application/json"
     }
+
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    ) 
 
 @app.route('/agent/profile/<agent_id>', methods=['PUT'])
 def update_agent(agent_id):
@@ -420,6 +438,7 @@ def update_agent(agent_id):
     agent.phone = data["phone"]
     agent.password = data["password"]
     agent.description = data["description"]
+    agent.city = data["city"]
     db.session.commit()
     
     response_body = {
@@ -501,33 +520,34 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+
 @app.route('/company-sign-up', methods=['POST'])
 def company_sign_up():
     data=request.getjson()
 
-@app.route('/realStateAgent/<realState_id>/agent/<agent_id>', methods=['POST'])
-def real_state_agent(realState_id, agent_id):
+# @app.route('/realStateAgent/<realState_id>/agent/<agent_id>', methods=['POST'])
+# def real_state_agent(realState_id, agent_id):
 
-    headers = {
-        "Content-Type": "application/json"
-    }
-    data = request.json
-    new_realStateAgent= RealStateAgent(id_agent, id_RealState)
-    db.session.add(new_realStateAgent)
-    try:
-        db.session.commit()
+#     headers = {
+#         "Content-Type": "application/json"
+#     }
+#     data = request.json
+#     new_realStateAgent= RealStateAgent(id_agent, id_RealState)
+#     db.session.add(new_realStateAgent)
+#     try:
+#         db.session.commit()
 
-        response_body = {
-        "status": "OK"
-        }
-        status_code = 200
-    except Exception as error:
-        db.session.rollback()
-        status_code = 400
+#         response_body = {
+#         "status": "OK"
+#         }
+#         status_code = 200
+#     except Exception as error:
+#         db.session.rollback()
+#         status_code = 400
 
-        response_body = {
-        "status": "HTTP: BAD REQUEST"
-        }
+#         response_body = {
+#         "status": "HTTP: BAD REQUEST"
+#         }
 
 @app.route('/transaction', methods=["GET","POST"])
 def handled_transaction():
@@ -586,7 +606,8 @@ def searchparams():
 
     #Busqueda de agentes por nombre y Inmuebles por location
     agentes= Agent.query.filter_by(name = request.args.get('search'))
-    inmuebles= RealState.query.filter_by(location=request.args.get('search'))
+    search = "%{}%".format(request.args.get('search'))
+    inmuebles= RealState.query.filter(RealState.location.like(search)).all()
     respuesta_agentes=[]
     for agente in agentes:
         respuesta_agentes.append(agente.serialize())

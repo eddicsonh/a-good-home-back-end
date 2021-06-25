@@ -72,24 +72,38 @@ class RealState(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=False, nullable=False)
     description = db.Column(db.String(200), unique=False, nullable=True)
-    location = db.Column(db.String(500), unique=False, nullable=True)
+    city = db.Column(db.String(100), unique=False, nullable=True)
+    address = db.Column(db.String(500), unique=False, nullable=True)
     total_area = db.Column(db.Integer, unique=False, nullable=True)
     builded_surface = db.Column(db.Integer, unique=False, nullable=True)
     rooms = db.Column(db.Integer, unique=False, nullable=True)
     bathrooms = db.Column(db.Integer, unique=False, nullable=True)
     parkings = db.Column(db.Integer, unique=False, nullable=True)
+    price = db.Column(db.Integer, unique=False, nullable=True)
+    contact_phone = db.Column(db.Integer, unique=True, nullable=True)
+    contact_rrss = db.Column(db.String(50), unique=False, nullable=True)
+    type_transaction = db.Column(db.String(50), unique=False, nullable=True)
+    additional_information = db.Column(db.String(200), unique=False, nullable=True)
+    image = db.Column(db.String(500), unique=True, nullable=True)
     transaction = db.relationship('Transaction', lazy=True)
     
 
-    def __init__ (self, name, description, location, total_area, builded_surface, rooms, bathrooms, parkings):
+    def __init__ (self, name, description, city, address, total_area, builded_surface, rooms, bathrooms, parkings, price, contact_phone, contact_rrss, type_transaction, additional_information,image):
         self.name = name,
         self.description = description,
-        self.location = location,
+        self.city = city,
+        self.address = address
         self.total_area = total_area,
         self.builded_surface = builded_surface,
         self.rooms = rooms,
         self.bathrooms = bathrooms,
         self.parkings = parkings,
+        self.price = price,
+        self.contact_phone = contact_phone,
+        self.contact_rrss = contact_rrss,
+        self.type_transaction = type_transaction
+        self.additional_information = additional_information,
+        self.image = image
     
     def __repr__(self):
         return '<RealState %r>' % self.name
@@ -99,24 +113,30 @@ class RealState(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "location": self.location,
+            "location": self.city + ' ' + self.address,
             "total_area": self.total_area,
             "builded_surface": self.builded_surface,
             "rooms": self.rooms,
             "bathrooms": self.bathrooms,
             "parkings": self.parkings,
-            "transaction": list(map(lambda x: x.serialize(), self.transaction))
+            "price": self.price,
+            "phone": self.contact_phone,
+            "RRSS": self.contact_rrss,
+            "transaction": self.transaction,
+            "additional_information": self.additional_information,
+            "image": self.image
+            # "transaction": list(map(lambda x: x.serialize(), self.transaction))
         }
 
-
 class Agent(db.Model):
+    __tablename__ = 'agent'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(80), unique=False, nullable=False)
     last_name = db.Column(db.String(80), unique=False, nullable=False)
     phone = db.Column(db.String(16), unique=True, nullable=False)
     description = db.Column(db.String(400), unique=False, nullable=False)
-    location = db.Column(db.String(120), unique=False, nullable=False)
+    city = db.Column(db.String(400), unique=False, nullable=True)
     salt = db.Column(db.String(40), nullable=False)
     hashed_password = db.Column(db.String(240), nullable=False)
     is_active = db.Column(db.Boolean(), default=True, nullable=False)
@@ -128,6 +148,7 @@ class Agent(db.Model):
         self.last_name = kwargs.get('last_name')
         self.phone = kwargs.get('phone')
         self.description = kwargs.get('description')
+        self.city = kwargs.get('city')
         self.salt = os.urandom(16).hex()
         self.set_password(kwargs.get('password'))
         
@@ -167,33 +188,12 @@ class Agent(db.Model):
             "email": self.email,
             "name": self.name,
             "last_name" : self.last_name,
-            "phone": self.phone
+            "phone": self.phone,
+            "city": self.city
             # do not serialize the password, its a security breach
         }
      
 
-
-# class RealStateAgent(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     id_agent = db.Column(db.Integer, db.ForeignKey('agent.id'))
-#     id_RealState = db.Column(db.Integer, db.ForeignKey('real_state.id'))
-
-#     def __init__(self, id_agent, id_RealState):
-#         self.id_agent= id_agent
-#         self.id_RealState= id_RealState
-
-#     def serialize(self):
-#         return {
-
-#             "id_agent": self.id_agent,
-#             "id_RealState": self.id_RealState,
-#             "company": self.company,
-#             "description": self.description,
-#             "location": self.description,
-#             "team_agents": self.team_agents,
-#             "listings": self.listings,
-#             "is_verified": self.is_verified 
-#         }
 
 
 class Transaction(db.Model):

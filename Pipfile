@@ -24,7 +24,7 @@ flask-jwt-extended = "*"
 cloudinary = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.8.2"
 
 [scripts]
 start="flask run -p 3000 -h 0.0.0.0"
