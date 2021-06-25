@@ -605,16 +605,30 @@ def searchparams():
     # Fin de la validación
 
     #Busqueda de agentes por nombre y Inmuebles por location
-    agentes= Agent.query.filter_by(name = request.args.get('search'))
+    
     search = "%{}%".format(request.args.get('search'))
-    inmuebles= RealState.query.filter(RealState.location.like(search)).all()
+    agentes= Agent.query.filter(Agent.name.like(search)).all()
+    # inmuebles= RealState.query.filter(RealState.address.like(search)).all()
     respuesta_agentes=[]
     for agente in agentes:
         respuesta_agentes.append(agente.serialize())
-    respuesta_inmuebles=[]
-    for inmueble in inmuebles:
-        respuesta_inmuebles.append(inmueble.serialize())
-    response = [respuesta_agentes,respuesta_inmuebles]
+    # respuesta_inmuebles=[]
+    # for inmueble in inmuebles:
+    #     respuesta_inmuebles.append(inmueble.serialize())
+    # response = [respuesta_agentes]
+
+    response_body = {
+            "status" : "OK",
+            "response": respuesta_agentes
+        }
+    status_code = 200
+ 
+    
+    return make_response(
+        jsonify(response_body),
+        status_code,
+        headers
+    )  
     if len(response[0])==0 and len(response[1])==0:
         return make_response(jsonify("No encontrado"), 404, headers)
     return make_response(jsonify(response), 200, headers)
